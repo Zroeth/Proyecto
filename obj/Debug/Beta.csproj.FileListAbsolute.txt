@@ -1,0 +1,9 @@
+C:\Users\Zer0\source\repos\Beta\bin\Debug\Beta.exe.config
+C:\Users\Zer0\source\repos\Beta\bin\Debug\Beta.exe
+C:\Users\Zer0\source\repos\Beta\bin\Debug\Beta.pdb
+C:\Users\Zer0\source\repos\Beta\obj\Debug\Beta.csprojAssemblyReference.cache
+C:\Users\Zer0\source\repos\Beta\obj\Debug\Beta.Form1.resources
+C:\Users\Zer0\source\repos\Beta\obj\Debug\Beta.Properties.Resources.resources
+C:\Users\Zer0\source\repos\Beta\obj\Debug\Beta.csproj.GenerateResource.cache
+C:\Users\Zer0\source\repos\Beta\obj\Debug\Beta.exe
+C:\Users\Zer0\source\repos\Beta\obj\Debug\Beta.pdb
