@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 
 namespace Beta
 {
+    //clase que revisa los signos de agrupacion y los terminos importantes del documento 
     class Agrupaciones
     {
+        //regresa un bool para expresar que los simbolos estan balanceados, o no
         internal Boolean EstaBalanceadoQm(char[] exp)
         {
             Stack<char> st = new Stack<char>();
@@ -42,7 +44,7 @@ namespace Beta
             }
         }
 
-
+        //para emparejar los simbolos que se han encontrado abiertos
         internal Boolean SeEncontroParejaQm(char character1, char character2)
         {
             if (character1 == '(' && character2 == ')')
@@ -68,6 +70,7 @@ namespace Beta
             }
         }
 
+        //determina la distancia entre las expresiones regulares para determinar cuantas lineas hay entre una er y la otra
         internal int Distancia(string[] lineas, int i, Regex terminales)
         {
 
@@ -84,7 +87,7 @@ namespace Beta
             return lineas.Length;
         }
 
-
+        //omitir los simbolos que se leen por linea ya que no estan balanceados
         internal string[] Omitir(string[] linea, int pos)
         {
             linea[pos] = linea[pos].Replace("'(''*'", " ");
@@ -99,6 +102,7 @@ namespace Beta
             linea[pos] = linea[pos].Replace("}", " ");
             return linea;
         }
+        //partes que no pueden faltar en un documento
         internal string Revisar(string[] linea, int pos, string capturada)
         {
             string[] rev = linea;
