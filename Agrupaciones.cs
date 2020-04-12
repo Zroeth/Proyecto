@@ -107,16 +107,19 @@ namespace Beta
         {
             string[] rev = linea;
             linea[pos] = linea[pos].Replace(" ", "");
-            if (rev[pos] == ("TOKENS"))
+            linea[pos] = linea[pos].Replace("   ", "");
+            linea[pos] = linea[pos].Replace(" ", "");
+
+            if (rev[pos].Contains("TOKENS"))
             {
                 capturada += "TOKENS";
 
             }
-            if (rev[pos] == ("ACTIONS"))
+            if (rev[pos].Contains("ACTIONS"))
             {
                 capturada += "ACTIONS";
             }
-            if (rev[pos] == ("RESERVADAS()"))
+            if (rev[pos].Contains("RESERVADAS()"))
             {
                 capturada += "RESERVADAS()";
             }

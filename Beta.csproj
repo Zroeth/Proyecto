@@ -52,12 +52,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Agrupaciones.cs" />
+    <Compile Include="Factores.cs" />
+    <Compile Include="Follows.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Genera.cs" />
+    <Compile Include="Nodo.cs" />
     <Compile Include="Nodos.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -103,6 +107,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="basicapp_1_06_512_HTX_icon.ico" />
+    <None Include="Resources\Generar.png" />
+    <None Include="Resources\1f430a36197347.57135ca19bbf51.gif" />
+    <None Include="Resources\1f430a36197347.57135ca19bbf5.gif" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
