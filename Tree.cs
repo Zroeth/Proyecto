@@ -27,10 +27,10 @@ namespace Beta
             {
                 tempParent = nodoTemporal;
                 //se creo la funcion comparar para determinar el peso que tiene la palabra
-                comparador = Comparar(nuevoNodo, nodoTemporal.m_Data);
+                comparador = Comparar(nuevoNodo, nodoTemporal.dato);
 
                 //en caso de que se encuentre un termino repetido se sale
-                if (nuevoNodo == nodoTemporal.m_Data)
+                if (nuevoNodo == nodoTemporal.dato)
                 {
                     return;
                 }
@@ -39,19 +39,19 @@ namespace Beta
                 else if (comparador == -1)
                 {
 
-                    nodoTemporal = nodoTemporal.Left;
+                    nodoTemporal = nodoTemporal.izq;
 
                 }
 
                 else
                 {
-                    nodoTemporal = nodoTemporal.Right;
+                    nodoTemporal = nodoTemporal.der;
                 }
             }
 
 
             Nodos nodoagregar = new Nodos(nuevoNodo);
-            comparador = Comparar(nuevoNodo, tempParent.m_Data);
+            comparador = Comparar(nuevoNodo, tempParent.dato);
             if (Root == null)
             {
                 Root = nodoagregar;
@@ -59,11 +59,11 @@ namespace Beta
             }
             else if (comparador == -1)
             {
-                tempParent.Left = nodoagregar;
+                tempParent.izq = nodoagregar;
             }
             else
             {
-                tempParent.Right = nodoagregar;
+                tempParent.der = nodoagregar;
             }
 
         }
@@ -88,13 +88,13 @@ namespace Beta
         {
             if (TraverseNode == null)
                 return;
-            InOrderString(TraverseNode.Left);
+            InOrderString(TraverseNode.izq);
             Visit(TraverseNode);
-            InOrderString(TraverseNode.Right);
+            InOrderString(TraverseNode.der);
         }
         private void Visit(Nodos TraverseNode)
         {
-            Nodes += TraverseNode.m_Data + " ";
+            Nodes += TraverseNode.dato + " ";
         }
 
         public string ObtenerNodos()

@@ -10,19 +10,18 @@ namespace Beta
     //nodos arbol 
     class Nodos
     {
-        public string m_Data;
-        public Nodos Left;
-        public Nodos Right;
+        public string dato;
+        public Nodos izq;
+        public Nodos der;
         public Nodos()
         {
         }
 
-
         public Nodos(string data)
         {
-            this.m_Data = data;
-            Left = null;
-            Right = null;
+            this.dato = data;
+            izq = null;
+            der = null;
         }
     }
 }

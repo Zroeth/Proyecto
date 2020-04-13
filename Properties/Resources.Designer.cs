@@ -63,6 +63,26 @@ namespace Beta.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap _1f430a36197347_57135ca19bbf5 {
+            get {
+                object obj = ResourceManager.GetObject("1f430a36197347.57135ca19bbf5", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap _1f430a361973471 {
+            get {
+                object obj = ResourceManager.GetObject("1f430a361973471", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap _336811 {
             get {
                 object obj = ResourceManager.GetObject("336811", resourceCulture);
@@ -98,6 +118,16 @@ namespace Beta.Properties {
         internal static System.Drawing.Bitmap file1 {
             get {
                 object obj = ResourceManager.GetObject("file1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Generar {
+            get {
+                object obj = ResourceManager.GetObject("Generar", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

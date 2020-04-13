@@ -45,4 +45,62 @@ namespace Beta
             return arreglo;
         }
 
-     }
+        public ArrayList Recorrer(ArrayList entrada)
+        {
+            Stack<char> Operadores = new Stack<char>();
+            ArrayList LSufija = new ArrayList();
+
+            for (int i = 0; i < entrada.Count; i++)
+            {
+                if (entrada[i].ToString() != "·" && entrada[i].ToString() != "(" && entrada[i].ToString() != "|" && entrada[i].ToString() != ")" && entrada[i].ToString() != "*" && entrada[i].ToString() != "+" && entrada[i].ToString() != "?")
+                {
+                    LSufija.Add(entrada[i]);
+                }
+                else if (entrada[i].ToString() == "(")
+                {
+                    Operadores.Push(Convert.ToChar(entrada[i]));
+                }
+                else if (entrada[i].ToString() == ")")
+                {
+                    char SimboloTope = Operadores.Pop();
+                    while (SimboloTope != '(')
+                    {
+                        LSufija.Add(SimboloTope);
+                        SimboloTope = Operadores.Pop();
+                    }
+                }
+                else
+                {
+                    while ((Operadores.Count != 0) && (Precedencia(Operadores.Peek()) >= Precedencia(Convert.ToChar(entrada[i]))))
+                    {
+                        LSufija.Add(Operadores.Pop());
+                    }
+                    Operadores.Push(Convert.ToChar(entrada[i]));
+                }
+            }
+            while (Operadores.Count != 0)
+            {
+                LSufija.Add(Operadores.Pop());
+            }
+
+            return LSufija;
+        }
+        public int Precedencia(char simbolo)
+        {
+            int Orden = 0;
+            switch (simbolo)
+            {
+                case '*': Orden = 4; break;
+                case '+': Orden = 4; break;
+                case '?': Orden = 4; break;
+                case '·': Orden = 3; break;
+                case '|': Orden = 2; break;
+                case '(': Orden = 1; break;
+            }
+            return Orden;
+        }
+
+
+
+    }
+}

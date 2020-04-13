@@ -7,3 +7,4 @@ C:\Users\Zer0\source\repos\Beta\obj\Debug\Beta.Properties.Resources.resources
 C:\Users\Zer0\source\repos\Beta\obj\Debug\Beta.csproj.GenerateResource.cache
 C:\Users\Zer0\source\repos\Beta\obj\Debug\Beta.exe
 C:\Users\Zer0\source\repos\Beta\obj\Debug\Beta.pdb
+C:\Users\Zer0\source\repos\Beta\obj\Debug\Beta.csproj.CoreCompileInputs.cache

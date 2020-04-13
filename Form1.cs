@@ -4,6 +4,9 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
+using System.Linq;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Beta
 {
@@ -37,50 +40,73 @@ namespace Beta
       
         private void Form1_DragEnter(object sender, DragEventArgs e)
         {
-             //Para leer obtener el archivo atrastandolo 
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
-            {
-                //guarda la ubicacion el documento en un string[]
-                string[] ubicacion = (string[])(e.Data.GetData(DataFormats.FileDrop));
-                string direccion="";
-                foreach (string lineas in ubicacion)
-                {
-                    //solo se aceptan .txt
-                    if (File.Exists(lineas) &&  lineas.EndsWith(".txt"))
-                    {
-                        using (TextReader tr = new StreamReader(lineas))
-                        {
-
-                            bandera = 0;
-                            richTextBox1.Text = tr.ReadToEnd();
-                            direccion = lineas;
-                            richTextBox2.ResetText();
-                            richTextBox3.ResetText();
-                            richTextBox4.ResetText();
-                            arbol.BorrarArbol(arbol.Root);
-                        }
-                        Proceder(direccion);
-                    }
-                    else
-                    {
-                        MessageBox.Show("Archivo inválido");
-                    }
-                   
-                }
-                richTextBox1.SelectAll();
-                richTextBox1.SelectionAlignment = HorizontalAlignment.Left;
-           
-            }
-         
+    
 
         }
-    
+
+
+        private void Form1_DragDrop(object sender, DragEventArgs e)
+        {
+            //Para leer obtener el archivo atrastandolo 
+
+            //guarda la ubicacion el documento en un string[]
+            string[] ubicacion = (string[])(e.Data.GetData(DataFormats.FileDrop));
+            string direccion = "";
+            foreach (string lineas in ubicacion)
+            {
+                //solo se aceptan .txt
+                if (File.Exists(lineas) && lineas.EndsWith(".txt"))
+                {
+                    using (TextReader tr = new StreamReader(lineas))
+                    {
+
+                        bandera = 0;
+                        richTextBox1.Text = tr.ReadToEnd();
+                        direccion = lineas;
+                        richTextBox2.ResetText();
+                        richTextBox3.ResetText();
+                        richTextBox4.ResetText();
+                        richTextBox5.ResetText();
+                        richTextBox6.ResetText();
+                        richTextBox7.ResetText();
+                        richTextBox7.Text = "FOLLOWS:";
+                        richTextBox6.Text = "FIRST:";
+                        richTextBox5.Text = "LAST:";
+                        var ds = dataGridView1.DataSource;
+                        dataGridView1.DataSource = null;
+                        dataGridView1.DataSource = ds;
+                        dataGridView1.Rows.Clear();
+                        dataGridView1.Columns.Clear();
+
+
+                        arbol.BorrarArbol(arbol.Root);
+                    }
+                    Proceder(direccion);
+                }
+                else
+                {
+                    MessageBox.Show("Archivo inválido");
+                }
+
+            }
+            richTextBox1.SelectAll();
+            richTextBox1.SelectionAlignment = HorizontalAlignment.Left;
+
+
+        }
+        string nuevoToke;
         static int bandera;
+        static int inicioTokens,inicioSets,finalTokens,finalSets;
+        static string [] erSets,erMatch;
+
+        List<Follows> Pntsig = new List<Follows>();
+        List<string[]> Tabla = new List<string[]>();
         //para permitir el analisis 
         static Agrupaciones agrupacion = new Agrupaciones();
         //arbol 
         Tree arbol = new Tree();
-
+        Genera generar = new Genera();
+        Factores proceso = new Factores();
         //Permite movel la aplicacion atrastandolo desde cualquier objeto 
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         public static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
@@ -109,11 +135,11 @@ namespace Beta
             var variables = new Regex(
                @"(([A-Za-z])+( *)=(( |)*((( *|(\+))(')(.)(')(..)(')(.)('))( )*)*|(( *|\+? *)(')(.)(')(..)(')(.)(')( )*(\+)( )*(')(.)(')(..)(')(.)(')( )*)*|(( *|(\+))(')(.)(')( *))*|( |)*(CHR)(\()[0-9]+(\))..(CHR)(\()[0-9]+(\))( |)*)*(|)$)");
             var tokens = new Regex(
-               @"(TOKEN)( |	)*(\d)+( |	)*=( |	)*(((\(+)( |	)*[A-Z]+( |	)*[A-Z]+( |	)*(\)+)( |	)*)+|((( |	|)*((')+(.)+(')+)+( |	|)*)+)|((([A-Z]*)+( |	)*((\*|\||\(|\)|\{|\}))+)( |	))*|([A-Z]+( |	)*[A-Z]+( |	)*((\*|\||\(|\)|\{|\})))|\})+");
+               @"(TOKEN)( |	)*(\d)+( |	|)+=((( |	|)+(')(.)('))+|( |	|)+([A-Z]+( |	|)+[A-Z]+( |	|)+\*)|('.')( |	|)+[A-Z]+( |	|)+('.')( |	|)+\|('.')( |	|)+[A-Z]+( |	|)+('.')( |	|)+|( |	|)+[A-Z]+( |	|)+\(( |	|)+[A-Z]+( |	|)+\|( |	|)+[A-Z]+( |	|)+\)( |	|)+\*( |	|)+\{( |	|)+[A-Z]+\(\)( |	|)+\})( |	|)+$");
             var funciones = new Regex(
-               @"(([A-Z])+(\(\))( )*)|( )*((\{)|(\}))( )*");
+               @"( |	|)*(([A-Z])+(\(\))( |	|)*)|( |	|)*((\{)|(\}))( |	|)*");
             var errores = new Regex(
-               @"(ERROR)( )*=( )*([0-9]+)( )*");
+               @"( |	|)*(ERROR)( |	|)*=( |	|)*([0-9]+)( |	|)*");
             var tokensfunciones = new Regex(
                @"(([0-9])+( )*=( )*((')([A-Z]+)('))( *|))|( )*((\{)|(\}))( )*");
 
@@ -126,11 +152,11 @@ namespace Beta
                 char[] caracter = omitir[i].ToCharArray();
                 if (!agrupacion.EstaBalanceadoQm(caracter))
                 {
-                    richTextBox2.Text += Environment.NewLine+"Los signos no están correctamente balanceados en la línea: " +(i+1);
-                    Señalar(richTextBox1, i , Color.Red);
+                    richTextBox2.Text += Environment.NewLine + "Los signos no están correctamente balanceados en la línea: " + (i + 1);
+                    Señalar(richTextBox1, i, Color.Red);
                     richTextBox3.Text += Environment.NewLine + "Se espera que los signos esten balanceados en la línea " + (i + 1);
                 }
-              
+
                 capturada = agrupacion.Revisar(omitir, i, capturada);
 
             }
@@ -200,7 +226,7 @@ namespace Beta
                             //no hay nada entre un tokens y un actions
                             richTextBox2.Text += Environment.NewLine + "Debe existir al menos un TOKEN";
                             richTextBox3.Text += Environment.NewLine + "Agregue un TOKEN válido";
-                           
+
                         }
                         bandera = 3;
                         arbol.Add("ACTIONS");
@@ -214,8 +240,9 @@ namespace Beta
                     {
                         //se detecto sets asi que minimo tiene que haber un set
                         string[] linea2 = lineas;
-                        linea2[i] = lineas[i];
                         distancia = agrupacion.Distancia(omitir, i, terminales);
+                        inicioSets = i;
+                        finalSets = distancia;
                         Analizar(i, distancia, variables, linea2, lineas);
                         arbol.Add("|");
                     }
@@ -224,13 +251,12 @@ namespace Beta
                     {
                         //se detecto tokens asi que minimo tiene que haber un token
                         string[] linea2 = lineas;
-                        linea2[i] = lineas[i];
                         distancia = agrupacion.Distancia(omitir, i, terminales);
+                        inicioTokens = i;
+                        finalTokens = distancia;
                         Analizar(i, distancia, tokens, linea2, lines);
                         arbol.Add("*");
                     }
-
-
                     if (bandera == 3)
                     {
                         string[] linea2 = lineas;
@@ -279,14 +305,14 @@ namespace Beta
                                         {
                                             if (lines[k] == "")
                                             {
-                                            
+
                                                 continue;
                                             }
                                             else
                                             {
                                                 richTextBox2.Text += Environment.NewLine + "Se detecto un token de función invalido: " + lineas[k] + " en la línea: " + (k + 1);
                                                 richTextBox3.Text += Environment.NewLine + "Se esperaba DIGITO = 'IDENTIFICADOR': " + lineas[k] + " en la línea: " + (k + 1);
-                                                Señalar(richTextBox1, k+1, Color.Red);
+                                                Señalar(richTextBox1, k + 1, Color.Red);
                                             }
                                         }
                                     }
@@ -313,7 +339,7 @@ namespace Beta
                                     Señalar(richTextBox1, j + 1, Color.Red);
                                 }
                             }
-                          
+
                         }
                         arbol.Add("+");
                     }
@@ -327,7 +353,7 @@ namespace Beta
                         {
                             arbol.Add("ERROR");
                         }
-                        else 
+                        else
                         {
                             if (lines[i] == "")
                             {
@@ -335,7 +361,7 @@ namespace Beta
                             }
                             else
                             {
-                                int algo=i;
+                                int algo = i;
                                 richTextBox2.Text += Environment.NewLine + "Se detecto un ERROR invalido: " + lineas[i] + " en la línea: " + (i + 1);
                                 richTextBox3.Text += Environment.NewLine + "Se esperaba ERROR = + DIGITO: " + lineas[i] + " en la línea: " + (i + 1);
                                 Señalar(richTextBox1, i + 1, Color.Red);
@@ -347,8 +373,85 @@ namespace Beta
             richTextBox4.Text += "Arbol (In Orden):";
             //devuelve el arbol que se creo por inorden
             arbol.InOrder();
-            richTextBox4.Text += Environment.NewLine+( arbol.ObtenerNodos());
+            richTextBox4.Text += Environment.NewLine + (arbol.ObtenerNodos());
+            erMatch = new string[lineas.Length];
+
+            try
+            {
+                nuevoToke = generar.Generar_ER_Tokens(lineas, inicioTokens, finalTokens, erMatch);
+                erSets = generar.Generar_ER_Sets(lineas, inicioSets, finalSets);
+                erMatch = generar.Hacer_Match(lineas, inicioTokens, finalTokens, erMatch);
+            }
+            catch
+            {
+                MessageBox.Show("Contenido en el archivo invalido");
+                return;
+            }
+
+            if (erSets.Length < erMatch.Length)
+            {
+                Array.Resize<string>(ref erSets, erMatch.Length);
+            }
+            else if (erSets.Length > erMatch.Length)
+            {
+                Array.Resize<string>(ref erMatch, erSets.Length);
+            }
+            for (int i = 0; i < erSets.Length; i++)
+            {
+                if (erSets[i] == null)
+                {
+                    erSets[i] = " ";
+                }
+                if (erMatch[i] == null)
+                {
+                    erMatch[i] = " ";
+                }
+            }
+
+            for (int i = 0; i < erSets.Length; i++)
+            {
+                for (int j = 0; j < erMatch.Length; j++)
+                {
+                    if (erSets[i] != " ")
+                    {
+                        if (erMatch[j].Contains(erSets[i]))
+                        {
+                            erMatch[j] = " ";
+                            erSets[i] = " ";
+                            j = -1;
+                        }
+                    }
+                }
+            }
+            for (int i = 0; i < erMatch.Length; i++)
+            {
+                if (erMatch[i] != " ")
+                {
+                    richTextBox3.Text += Environment.NewLine + "TOKEN NO DECLARADO EN SETS";
+                    richTextBox2.Text += Environment.NewLine + "DEBE DECLARAR UN SET PARA EL TOKEN";
+                    break;
+                }
+            }
+            try
+            {
+                ArrayList entrada = proceso.Dividir(nuevoToke);
+                ArrayList salida = proceso.Recorrer(entrada);
+                Obtener(salida);
+            }
+            catch
+            {
+                MessageBox.Show("El archivo no cuenta con un formato de TOKENS valido");
+            }
+
+            //   File.WriteAllLines(@"C:\Users\Zer0\Desktop\lineas.txt",lineas);
+            //   File.WriteAllLines(@"C:\Users\Zer0\Desktop\lines.txt", lines);
+            //   File.WriteAllLines(@"C:\Users\Zer0\Desktop\Nmatch.txt", erMatch);
+            //   File.WriteAllLines(@"C:\Users\Zer0\Desktop\Nsets.txt", erSets);
+
         }
+
+
+
         //resalta la linea del richtextbox que esta mal
         public static void Señalar( RichTextBox richTextBox, int index, Color color)
         {
@@ -363,6 +466,7 @@ namespace Beta
             richTextBox.SelectionBackColor = color;
         }
 
+
         private void Form1_MouseDown(object sender, MouseEventArgs e)
         {
             //Permite mover el form 
@@ -373,43 +477,409 @@ namespace Beta
             }
         }
 
-        private void Form1_DragDrop(object sender, DragEventArgs e)
-        {
-         
-        }
+       
 
         private void richTextBox1_Enter(object sender, EventArgs e)
         {
             //Oculta el signo de intercalación
             ActiveControl = null;
         }
-             void Analizar(int i, int distancia, Regex regex, string[] linea2, string[] lineas)
+        void Analizar(int i, int distancia, Regex regex, string[] linea2, string[] lineas)
+        {
+            for (int j = i; j < distancia; j++)
             {
-                for (int j = i; j < distancia; j++)
+                Match match2 = regex.Match(linea2[j]);
+                string v2 = match2.Groups[0].Value;
+                if (match2.Success)
                 {
-                    Match match2 = regex.Match(linea2[j]);
-                    string v2 = match2.Groups[0].Value;
-                    if (match2.Success)
+                    //pues se detecto un set|token que es valido que asi que banderita puede cambiar 
+                    bandera = 0;
+                }
+                else
+                {
+                    if (lineas[j] == ""|| lineas[j] == "\t" || lineas[j] == " ")
                     {
-                        //pues se detecto un set|token que es valido que asi que banderita puede cambiar 
-                        bandera = 0;
+                
+                        continue;
                     }
                     else
                     {
-                        if (lineas[j] == "")
-                        {
-                            continue;
-                        }
-                        else
-                        {
-                           richTextBox2.Text += Environment.NewLine + "Línea invalida: " + linea2[j] + "  en la línea:  " + (j + 1);
-                           richTextBox3.Text += Environment.NewLine + "Agregue una expresión válida" + "  en la línea:  " + (j + 1);
-                    }
+                        richTextBox2.Text += Environment.NewLine + "Línea invalida: " + linea2[j] + "  en la línea:  " + (j + 1);
+                        richTextBox3.Text += Environment.NewLine + "Agregue una expresión válida" + "  en la línea:  " + (j + 1);
+
                     }
                 }
             }
+        }
+        public void Obtener(ArrayList cadenaT)
+        {
+            Stack<Nodo> Simbolos = new Stack<Nodo>();
+            List<Nodo> cadenaMod = new List<Nodo>();
+            ArrayList ST = new ArrayList();
+            int cont = 1;
+            for (int i = 0; i < cadenaT.Count; i++)
+            {
+                if (cadenaT[i].ToString() != "·" && cadenaT[i].ToString() != "(" && cadenaT[i].ToString() != "|" && cadenaT[i].ToString() != ")" && cadenaT[i].ToString() != "*" && cadenaT[i].ToString() != "+" && cadenaT[i].ToString() != "?")
+                {
+                    Follows Siguiente = new Follows();
+                    Siguiente.indice = cont;
+                    Siguiente.grupo = cadenaT[i].ToString();
+                    Pntsig.Add(Siguiente);
+                    Nodo N = new Nodo();
+                    N.simbolo = cadenaT[i].ToString();
+                    N.First.Add(cont);
+                    N.Last.Add(cont);
+                    N.Nulo = false;
+                    cont++;
+                    cadenaMod.Add(N);
+                    if ((!ST.Contains(cadenaT[i])) && cadenaT[i].ToString() != "#")
+                        ST.Add(cadenaT[i]);
+                }
+                else
+                {
+                    Nodo N = new Nodo();
+                    N.simbolo = cadenaT[i].ToString();
+                    cadenaMod.Add(N);
+                }
+            }
+            for (int i = 0; i < cadenaT.Count; i++)
+            {
+                if (cadenaT[i].ToString() != "·" && cadenaT[i].ToString() != "(" && cadenaT[i].ToString() != "|" && cadenaT[i].ToString() != ")" && cadenaT[i].ToString() != "*" && cadenaT[i].ToString() != "+" && cadenaT[i].ToString() != "?")
+                {
+                    Simbolos.Push(cadenaMod[i]);
+                }
+                else
+                {
+                    NuevoNodo(cadenaT[i].ToString(), ref Simbolos);
+                }
+            }
+            Imprimir();
+            Queue<string> grupo1 = new Queue<string>();
+            List<string> grupo2 = new List<string>();
+            string[] conjuntos = new string[ST.Count + 1];
+            string temp = "";
+            Nodo N2 = Simbolos.Pop();
+            List<int> First = N2.First;
+            for (int i = 0; i < First.Count; i++)
+            {
+                temp += First[i] + ",";
+            }
+            temp = temp.TrimEnd(',');
+            conjuntos[0] = temp;
+            grupo1.Enqueue(temp);
+            grupo2.Add(temp);
+            ST.Sort();
+            while (grupo1.Count != 0)
+            {
+                if (grupo1.Count != 0)
+                {
+                    conjuntos[0] = grupo1.Dequeue();
+                }
+                for (int i = 0; i < ST.Count; i++)
+                {
+                    for (int j = 0; j < Pntsig.Count; j++)
+                    {
+                        if (ST[i].ToString() == Pntsig[j].grupo && conjuntos[0].Contains(Pntsig[j].indice.ToString()))
+                        {
+                            for (int k = 0; k < Pntsig[j].Follow.Count; k++)
+                            {
+                                if (conjuntos[i + 1] == null || conjuntos[i + 1] == "")
+                                {
+                                    conjuntos[i + 1] += Pntsig[j].Follow[k].ToString();
+                                }
+                                else if (!conjuntos[i + 1].Contains(Pntsig[j].Follow[k].ToString()))
+                                {
+                                    conjuntos[i + 1] += "," + Pntsig[j].Follow[k].ToString();
+                                }
+                            }
+                            conjuntos[i + 1] = conjuntos[i + 1].TrimEnd(',');
+                            if (conjuntos[0] != conjuntos[i + 1] && !grupo2.Contains(conjuntos[i + 1]))
+                            {
+                                grupo1.Enqueue(conjuntos[i + 1]);
+                                grupo2.Add(conjuntos[i + 1]);
+                            }
+                        }
+                    }
+                }
+                Tabla.Add(conjuntos);
+                conjuntos = new string[ST.Count + 1];
 
-            private void richTextBox1_Leave(object sender, EventArgs e)
+            }
+            TablaDgrd(ST, grupo2);
+            ST = null;
+            grupo2 = null;
+        }
+        public void TablaDgrd(ArrayList cadena1, List<string> grupo2)
+        {
+            ArrayList objgrupo = new ArrayList();
+            for (int i = 65; i <= 90; i++)
+            {
+                objgrupo.Add((char)i);
+            }
+            for (int j = 0; j <= 26; j++)
+            {
+                for (int l = 0; l <= 26; l++)
+                {
+                    objgrupo.Add(objgrupo[j].ToString() + objgrupo[l].ToString());
+                }
+            }
+            dataGridView1.RowCount = grupo2.Count + 1;
+            dataGridView1.ColumnCount = cadena1.Count + 1;
+            for (int i = 1; i <= cadena1.Count; i++)
+            {
+               dataGridView1.Rows[0].Cells[i].Value = cadena1[i - 1].ToString();
+            }
+            for (int i = 0; i < Tabla.Count; i++)
+            {
+                for (int j = 0; j < cadena1.Count + 1; j++)
+                {
+                    for (int k = 0; k < grupo2.Count; k++)
+                    {
+                        if (Tabla[i][j] == grupo2[k])
+                        {
+                            if (i == 0 && j == 0)
+                            {
+                                if (Tabla[i][j].Contains(Pntsig.Last().indice.ToString()) && j == 0)
+                                {
+                                  dataGridView1.Rows[i + 1].Cells[j].Value = objgrupo[k];
+                                }
+                                else
+                                {
+                                   dataGridView1.Rows[i + 1].Cells[j].Value = objgrupo[k];
+                                }
+                            }
+                            else
+                            {
+                                if (Tabla[i][j].Contains(Pntsig.Last().indice.ToString()) && j == 0)
+                                {
+                                   dataGridView1.Rows[i + 1].Cells[j].Value = objgrupo[k];
+                                }
+                                else
+                                {
+                                    dataGridView1.Rows[i + 1].Cells[j].Value = objgrupo[k];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            Tabla.Clear();
+            richTextBox3.Text += Environment.NewLine + "Archivo correcto";
+        }
+        public void Imprimir()
+        {
+            string linea = "";
+            for (int i = 0; i < Pntsig.Count; i++)
+            {
+                linea += Pntsig[i].indice.ToString() + ")  ";
+                for (int j = 0; j < Pntsig[i].Follow.Count; j++)
+                {
+                    if (j == Pntsig[i].Follow.Count - 1)
+                    {
+                        linea += Pntsig[i].Follow[j].ToString();
+                    }
+                    else
+                    {
+                        linea += Pntsig[i].Follow[j].ToString() + ",";
+                    }
+                }
+                richTextBox7.Text += Environment.NewLine + linea;
+                linea = "";
+            }
+        }
+        public void NuevoNodo(string op, ref Stack<Nodo> simb)
+        {
+            Nodo Nuevo = new Nodo();
+            switch (op)
+            {
+                case "*":
+                    Nodo C1_Asterisco = simb.Pop();
+                    Nuevo.simbolo = "(" + C1_Asterisco.simbolo + ")*";
+                    Nuevo.First = C1_Asterisco.First;
+                    Nuevo.Last = C1_Asterisco.Last;
+                    foreach (var s in Nuevo.First)
+                    {
+                        richTextBox6.Text += Environment.NewLine + "First de: " + "(*) : " + s;
+                    }
+                    foreach (var s in Nuevo.Last)
+                    {
+                        richTextBox5.Text += Environment.NewLine + "Last de: " + "(*) : " + s;
+                    }
+                    Nuevo.Nulo = true;
+                    simb.Push(Nuevo);
+                    ObtenerFollow(Nuevo);
+                    break;
+                case "+":
+                    Nodo C1_Mas = simb.Pop();
+                    Nuevo.simbolo = "(" + C1_Mas.simbolo + ")+";
+                    Nuevo.First = C1_Mas.First;
+                    Nuevo.Last = C1_Mas.Last;
+                    foreach (var s in Nuevo.First)
+                    {
+                        richTextBox6.Text += Environment.NewLine + "First de: " + "(+) : " + s;
+                    }
+                    foreach (var s in Nuevo.Last)
+                    {
+                        richTextBox5.Text += Environment.NewLine + "Last de: " + "(+) : " + s;
+                    }
+                    Nuevo.Nulo = false;
+                    simb.Push(Nuevo);
+                    ObtenerFollow(Nuevo);
+                    break;
+                case "?":
+                    Nodo C1_Interrogacion = simb.Pop();
+                    Nuevo.simbolo = "(" + C1_Interrogacion.simbolo + ")?";
+                    Nuevo.First = C1_Interrogacion.First;
+                    Nuevo.Last = C1_Interrogacion.Last;
+                    foreach (var s in Nuevo.First)
+                    {
+                        richTextBox6.Text += Environment.NewLine + "First de: " + "(?) : " + s;
+                    }
+                    foreach (var s in Nuevo.Last)
+                    {
+                        richTextBox5.Text += Environment.NewLine + "Last de: " + "(?) : " + s;
+                    }
+                    Nuevo.Nulo = true;
+                    simb.Push(Nuevo);
+                    break;
+                case "·":
+                    Nodo simbcont = simb.Pop();
+                    Nodo simbcont2 = simb.Pop();
+                    Nuevo.simbolo = simbcont2.simbolo + "·" + simbcont.simbolo;
+                    if (simbcont2.Nulo)
+                    {
+                        List<int> FirstTemp = new List<int>();
+                        for (int i = 0; i < simbcont2.First.Count; i++)
+                        {
+                            FirstTemp.Add(simbcont2.First[i]);
+                        }
+                        for (int i = 0; i < simbcont.First.Count; i++)
+                        {
+                            FirstTemp.Add(simbcont.First[i]);
+                        }
+                        Nuevo.First = FirstTemp;
+                    }
+                    else
+                    {
+                        Nuevo.First = simbcont2.First;
+                    }
+                    if (simbcont.Nulo)
+                    {
+                        List<int> LastTemp = new List<int>();
+                        for (int i = 0; i < simbcont2.Last.Count; i++)
+                        {
+                            LastTemp.Add(simbcont2.Last[i]);
+                        }
+                        for (int i = 0; i < simbcont.Last.Count; i++)
+                        {
+                            LastTemp.Add(simbcont.Last[i]);
+                        }
+                        Nuevo.Last = LastTemp;
+                    }
+                    else
+                    {
+                        Nuevo.Last = simbcont.Last;
+                    }
+                    if (simbcont2.Nulo == true && simbcont.Nulo == true)
+                    {
+                        Nuevo.Nulo = true;
+                    }
+                    else
+                    {
+                        Nuevo.Nulo = false;
+                    }
+                    simb.Push(Nuevo);
+                    ObtenerFollowSig(simbcont2, simbcont);
+                    foreach (var s in Nuevo.First)
+                    {
+                        richTextBox6.Text += Environment.NewLine + "First de: " + "\"" + simb.Peek().simbolo + "\"" + " : " + s;
+                    }
+                    foreach (var s in Nuevo.Last)
+                    {
+                        richTextBox5.Text += Environment.NewLine + "Last de: " + "\"" + simb.Peek().simbolo + "\"" + " : " + s;
+                    }
+                    break;
+                case "|":
+                    Nodo C2_Or = simb.Pop();
+                    Nodo C1_Or = simb.Pop();
+                    Nuevo.simbolo = C1_Or.simbolo + "|" + C2_Or.simbolo;
+                    for (int i = 0; i < C1_Or.First.Count; i++)
+                    {
+                        Nuevo.First.Add(C1_Or.First[i]);
+                    }
+                    for (int i = 0; i < C2_Or.First.Count; i++)
+                    {
+                        Nuevo.First.Add(C2_Or.First[i]);
+                    }
+                    for (int i = 0; i < C1_Or.Last.Count; i++)
+                    {
+                        Nuevo.Last.Add(C1_Or.Last[i]);
+                    }
+                    for (int i = 0; i < C2_Or.Last.Count; i++)
+                    {
+                        Nuevo.Last.Add(C2_Or.Last[i]);
+                    }
+                    if (C1_Or.Nulo == true || C2_Or.Nulo == true)
+                    {
+                        Nuevo.Nulo = true;
+                    }
+                    else
+                    {
+                        Nuevo.Nulo = false;
+                    }
+                    simb.Push(Nuevo);
+                    foreach (var s in Nuevo.First)
+                    {
+                        richTextBox6.Text += Environment.NewLine + "First de: " + "(|) : " + s;
+                    }
+                    foreach (var s in Nuevo.Last)
+                    {
+                        richTextBox5.Text += Environment.NewLine + "Last de: " + "(|) : " + s;
+                    }
+                    break;
+
+            }
+        }
+
+        public void ObtenerFollow(Nodo nuevo)
+        {
+            for (int i = 0; i < nuevo.Last.Count; i++)
+            {
+                for (int j = 0; j < Pntsig.Count; j++)
+                {
+                    if (nuevo.Last[i] == Pntsig[j].indice)
+                    {
+                        for (int k = 0; k < nuevo.First.Count; k++)
+                        {
+                            if (!Pntsig[j].Follow.Contains(nuevo.First[k]))
+                            {
+                                Pntsig[j].Follow.Add(nuevo.First[k]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        public void ObtenerFollowSig(Nodo nuevo, Nodo nuevo2)
+        {
+            for (int i = 0; i < nuevo.Last.Count; i++)
+            {
+                for (int j = 0; j < Pntsig.Count; j++)
+                {
+                    if (nuevo.Last[i] == Pntsig[j].indice)
+                    {
+                        for (int k = 0; k < nuevo2.First.Count; k++)
+                        {
+                            if (!Pntsig[j].Follow.Contains(nuevo2.First[k]))
+                            {
+                                Pntsig[j].Follow.Add(nuevo2.First[k]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        private void richTextBox1_Leave(object sender, EventArgs e)
         {
             //Oculta el signo de intercalación
             ActiveControl = null;
@@ -499,11 +969,114 @@ namespace Beta
             }
         }
 
+       
+       
         private void richTextBox4_Click(object sender, EventArgs e)
         {
 
             //Oculta el signo de intercalación
             ActiveControl = null;
+        }
+
+        private void richTextBox6_Click(object sender, EventArgs e)
+        {
+            //Oculta el signo de intercalación
+            ActiveControl = null;
+        }
+
+        private void richTextBox6_Enter(object sender, EventArgs e)
+        {
+            //Oculta el signo de intercalación
+            ActiveControl = null;
+        }
+
+        private void richTextBox6_Leave(object sender, EventArgs e)
+        {
+            //Oculta el signo de intercalación
+            ActiveControl = null;
+        }
+
+        private void richTextBox6_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                ReleaseCapture();
+                SendMessage(Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
+            }
+        }
+
+        private void richTextBox5_Click(object sender, EventArgs e)
+        {
+
+            //Oculta el signo de intercalación
+            ActiveControl = null;
+        }
+
+        private void richTextBox5_Enter(object sender, EventArgs e)
+        {
+
+            //Oculta el signo de intercalación
+            ActiveControl = null;
+        }
+
+        private void richTextBox5_Leave(object sender, EventArgs e)
+        {
+
+            //Oculta el signo de intercalación
+            ActiveControl = null;
+        }
+
+        private void richTextBox5_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                ReleaseCapture();
+                SendMessage(Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
+            }
+        }
+
+        private void richTextBox7_Click(object sender, EventArgs e)
+        {
+            //Oculta el signo de intercalación
+            ActiveControl = null;
+        }
+
+        private void richTextBox7_Enter(object sender, EventArgs e)
+        {
+            //Oculta el signo de intercalación
+            ActiveControl = null;
+        }
+
+        private void richTextBox7_Leave(object sender, EventArgs e)
+        {
+            //Oculta el signo de intercalación
+            ActiveControl = null;
+        }
+
+        private void richTextBox7_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                ReleaseCapture();
+                SendMessage(Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
+            }
+        }
+
+        private void dataGridView1_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                ReleaseCapture();
+                SendMessage(Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
+            }
+        }
+
+        private void Form1_DragEnter_1(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop, false) == true)
+            {
+                e.Effect = DragDropEffects.All;
+            }
         }
 
         private void richTextBox4_Enter(object sender, EventArgs e)
