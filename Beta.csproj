@@ -107,6 +107,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="basicapp_1_06_512_HTX_icon.ico" />
+    <Content Include="Bitmap1.bmp" />
+    <None Include="Resources\oie_2510237dvbK0C1K1.gif" />
+    <None Include="Resources\image_processing20190910-11148-154jotf.gif" />
+    <None Include="Resources\orbit-2-planets.gif" />
+    <None Include="Resources\oie_2510237dvbK0C1K.gif" />
     <None Include="Resources\Generar.png" />
     <None Include="Resources\1f430a36197347.57135ca19bbf51.gif" />
     <None Include="Resources\1f430a36197347.57135ca19bbf5.gif" />

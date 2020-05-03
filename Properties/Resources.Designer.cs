@@ -131,5 +131,45 @@ namespace Beta.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap image_processing20190910_11148_154jotf {
+            get {
+                object obj = ResourceManager.GetObject("image_processing20190910-11148-154jotf", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap oie_2510237dvbK0C1K {
+            get {
+                object obj = ResourceManager.GetObject("oie_2510237dvbK0C1K", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap oie_2510237dvbK0C1K1 {
+            get {
+                object obj = ResourceManager.GetObject("oie_2510237dvbK0C1K1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap orbit_2_planets {
+            get {
+                object obj = ResourceManager.GetObject("orbit-2-planets", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }

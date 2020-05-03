@@ -80,7 +80,6 @@ namespace Beta
                 if (match2.Success)
                 {
                     return j;
-
                 }
             }
 

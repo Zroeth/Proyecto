@@ -34,7 +34,6 @@ namespace Beta
             richTextBox1.SelectAll();
             richTextBox1.SelectionAlignment = HorizontalAlignment.Center;
             richTextBox1.Text = "ARRASTRAR ARCHIVO AQUÍ";
-            
         }
 
       
@@ -69,6 +68,10 @@ namespace Beta
                         richTextBox5.ResetText();
                         richTextBox6.ResetText();
                         richTextBox7.ResetText();
+                        label1.Visible = false;
+                        pictureBox2.Visible = false;
+                        richTextBox7.Clear();
+                        Pntsig.Clear();
                         richTextBox7.Text = "FOLLOWS:";
                         richTextBox6.Text = "FIRST:";
                         richTextBox5.Text = "LAST:";
@@ -97,7 +100,10 @@ namespace Beta
         string nuevoToke;
         static int bandera;
         static int inicioTokens,inicioSets,finalTokens,finalSets;
-        static string [] erSets,erMatch;
+        static string[] erSets, erMatch,esuntoken,esUnaReservada, tokenParaExportar;
+        string guardar;
+        string copiar;
+
 
         List<Follows> Pntsig = new List<Follows>();
         List<string[]> Tabla = new List<string[]>();
@@ -135,7 +141,7 @@ namespace Beta
             var variables = new Regex(
                @"(([A-Za-z])+( *)=(( |)*((( *|(\+))(')(.)(')(..)(')(.)('))( )*)*|(( *|\+? *)(')(.)(')(..)(')(.)(')( )*(\+)( )*(')(.)(')(..)(')(.)(')( )*)*|(( *|(\+))(')(.)(')( *))*|( |)*(CHR)(\()[0-9]+(\))..(CHR)(\()[0-9]+(\))( |)*)*(|)$)");
             var tokens = new Regex(
-               @"(TOKEN)( |	)*(\d)+( |	|)+=((( |	|)+(')(.)('))+|( |	|)+([A-Z]+( |	|)+[A-Z]+( |	|)+\*)|('.')( |	|)+[A-Z]+( |	|)+('.')( |	|)+\|('.')( |	|)+[A-Z]+( |	|)+('.')( |	|)+|( |	|)+[A-Z]+( |	|)+\(( |	|)+[A-Z]+( |	|)+\|( |	|)+[A-Z]+( |	|)+\)( |	|)+\*( |	|)+\{( |	|)+[A-Z]+\(\)( |	|)+\})( |	|)+$");
+               @"(TOKEN)( | )*(\d)+( | |)+=((( | |)+(')(.)('))+|( | |)+'.'( | |)+'.'( | |)+..( | |)+'.'( | |)+'.'( | |)+.|( | |)+[A-Z]+(	| |)+(.)+(	| |)+[A-Z]+(	| |)+(.)+(	| |)+|( | |)+([A-Z]+( | |)+[A-Z]+( | |)+\*)|('.')( | |)+[A-Z]+( | |)+('.')( | |)+\|('.')( | |)+[A-Z]+( | |)+('.')( | |)+|( | |)+[A-Z]+( | |)+\(( | |)+[A-Z]+( | |)+\|( | |)+[A-Z]+( | |)+\)( | |)+\*( | |)+\{( | |)+[A-Z]+\(\)( | |)+\})( | |)+$");
             var funciones = new Regex(
                @"( |	|)*(([A-Z])+(\(\))( |	|)*)|( |	|)*((\{)|(\}))( |	|)*");
             var errores = new Regex(
@@ -262,6 +268,7 @@ namespace Beta
                         string[] linea2 = lineas;
                         linea2[i] = lineas[i];
                         distancia = agrupacion.Distancia(lineas, i, errores);
+                        esUnaReservada = new string[distancia];
                         for (int j = i; j < distancia; j++)
                         {
                             Match match2 = funciones.Match(linea2[j]);
@@ -300,6 +307,7 @@ namespace Beta
                                             bandera = 4;
                                             arbol.Add("-");
                                             i = k;
+                                            esUnaReservada[k] = linea2[k];
                                         }
                                         else
                                         {
@@ -378,7 +386,8 @@ namespace Beta
 
             try
             {
-                nuevoToke = generar.Generar_ER_Tokens(lineas, inicioTokens, finalTokens, erMatch);
+                esuntoken = esuntoken.Where(x => !string.IsNullOrEmpty(x)).ToArray();
+                nuevoToke = generar.Generar_ER_Tokens(esuntoken);
                 erSets = generar.Generar_ER_Sets(lineas, inicioSets, finalSets);
                 erMatch = generar.Hacer_Match(lineas, inicioTokens, finalTokens, erMatch);
             }
@@ -429,7 +438,7 @@ namespace Beta
                 {
                     richTextBox3.Text += Environment.NewLine + "TOKEN NO DECLARADO EN SETS";
                     richTextBox2.Text += Environment.NewLine + "DEBE DECLARAR UN SET PARA EL TOKEN";
-                    break;
+                    return;
                 }
             }
             try
@@ -477,7 +486,7 @@ namespace Beta
             }
         }
 
-       
+        
 
         private void richTextBox1_Enter(object sender, EventArgs e)
         {
@@ -486,6 +495,7 @@ namespace Beta
         }
         void Analizar(int i, int distancia, Regex regex, string[] linea2, string[] lineas)
         {
+            esuntoken = new string[distancia];
             for (int j = i; j < distancia; j++)
             {
                 Match match2 = regex.Match(linea2[j]);
@@ -494,6 +504,7 @@ namespace Beta
                 {
                     //pues se detecto un set|token que es valido que asi que banderita puede cambiar 
                     bandera = 0;
+                    esuntoken[j] = linea2[j];
                 }
                 else
                 {
@@ -606,15 +617,50 @@ namespace Beta
 
             }
             TablaDgrd(ST, grupo2);
+
+            var array = new object[dataGridView1.RowCount, dataGridView1.ColumnCount];
+            for (int i = 0; i < array.GetLength(0); i++)
+            {
+                for (int j = 0; j < array.GetLength(1); j++)
+                {
+                    if (dataGridView1.Rows[i].Cells[j].Value != null)
+                    {
+                        array[i, j] = dataGridView1.Rows[i].Cells[j].Value;
+                    }
+                       
+                }
+            }
+            using (var sw = new StreamWriter("Datagrid.txt"))
+            {
+                for (int i = 0; i < dataGridView1.RowCount; i++)
+                {
+                    for (int j = 0; j < dataGridView1.ColumnCount; j++)
+                    {
+                        
+                        if (j == dataGridView1.ColumnCount-1)
+                        {
+                            sw.Write(array[i, j]);
+                        }
+                        else
+                        {
+                            sw.Write(array[i, j] + " ");
+                        }
+                    }
+                    sw.Write("\n");
+                }
+            }
+
+            label1.Visible = true;
+            pictureBox2.Visible = true;
             ST = null;
             grupo2 = null;
         }
         public void TablaDgrd(ArrayList cadena1, List<string> grupo2)
         {
             ArrayList objgrupo = new ArrayList();
-            for (int i = 65; i <= 90; i++)
+            for (int i = 0; i <= 90; i++)
             {
-                objgrupo.Add((char)i);
+                objgrupo.Add(i);
             }
             for (int j = 0; j <= 26; j++)
             {
@@ -625,6 +671,7 @@ namespace Beta
             }
             dataGridView1.RowCount = grupo2.Count + 1;
             dataGridView1.ColumnCount = cadena1.Count + 1;
+           
             for (int i = 1; i <= cadena1.Count; i++)
             {
                dataGridView1.Rows[0].Cells[i].Value = cadena1[i - 1].ToString();
@@ -687,6 +734,148 @@ namespace Beta
                 linea = "";
             }
         }
+
+        public void SepararEntradaEvaluar()
+        {
+
+            string entrada = "Program x a:=b c=d const a K1LLER";
+            entrada = entrada.TrimStart(' ');
+            string tokenEs = (@"([a-z])([^ \w])([^ \w])([a-z])");
+            string tokenEs2 = (@"([a-z])([^ \w])([a-z])");
+            entrada = Regex.Replace(entrada, tokenEs, "$1" + " " + "$2" +" "+ "$3" + " " + "$4");
+            entrada = Regex.Replace(entrada, tokenEs2, "$1" + " " + "$2" + " " + "$3"); 
+            string[] token = entrada.Split(' ');
+            //File.WriteAllLines(@"C:\Users\Zer0\Desktop\token.txt", token);
+            VerificarEntrada(token);
+        }
+        public void SepararEntradaDemostrar()
+        {
+
+            string entrada = "Program x a:=b c=d const a";
+            entrada = entrada.TrimStart(' ');
+            string tokenEs = (@"([a-z])([^ \w])([^ \w])([a-z])");
+            string tokenEs2 = (@"([a-z])([^ \w])([a-z])");
+            entrada = Regex.Replace(entrada, tokenEs, "$1" + " " + "$2" + "$3" + " " + "$4");
+            entrada = Regex.Replace(entrada, tokenEs2, "$1" + " " + "$2" + " " + "$3");
+            string[] token = entrada.Split(' ');
+            //File.WriteAllLines(@"C:\Users\Zer0\Desktop\token.txt", token);
+            VerificarEntrada(token);
+        }
+
+        public string QueTokenEs(string[] entrada,int i)
+        {
+
+            var letras = new Regex(
+               @"^[a-zA-Z]+$");
+            var numeros = new Regex(
+              @"^[0-9]+$");
+
+            Match match2 = numeros.Match(entrada[i]);
+
+            Match match1 = letras.Match(entrada[i]);
+        
+            if (match1.Success)
+            {
+                return("LETRA");
+            }
+            else if (match2.Success)
+            {
+                return ("DIGITO");
+            }
+
+
+            return "error";
+            
+
+        }
+
+
+        public void VerificarEntrada(string[] entrada)
+        {
+            string[][] array = File.ReadLines(@"Datagrid.txt").Select(line => line.Split(' ')).ToArray();
+          
+            using (var sw = new StreamWriter("Otros.txt"))
+            {
+                for (int i = 0; i < array.Length; i++)
+                {
+                    for (int j = 0; j < array[i].Length; j++)
+                    {
+                        if (j == array[i].Length-1)
+                        {
+                            sw.Write(array[i][j]);
+                        }
+                        else
+                        {
+                            sw.Write(array[i][j] + " ");
+                        }
+                    }
+                    sw.Write("\n");
+                }
+            }
+            
+              bool error = false;
+              bool existe = false;    
+              string cadena="";
+              for (int i = 0; i < entrada.Length; i++)
+              {
+                for (int l = 0; l < array[0].Length; l++)
+                {
+
+                    if (entrada[i] == array[0][l])
+                    {
+                        cadena = array[0][l].ToString();
+                        existe = false;
+                        break;
+                    }
+                    else
+                    {
+                        existe = true;
+                    }
+
+                }
+                if (existe)
+                {
+                    cadena = QueTokenEs(entrada, i);
+                    if (cadena == "error")
+                    {
+                        MessageBox.Show("Error", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+                }
+
+                for (int j=1;j<array.Length;j++)
+                  {
+                      for (int k = 1; k < array[j].Length; k++)
+                      {
+                          if(cadena == array[0][k].ToString())
+                          {
+                              j =Convert.ToInt32(array[j][k]);
+                              error = false;
+                            break;
+                          }
+                          else
+                          {
+                              error = true;
+                          }
+
+                      }
+                    if (error)
+                    {
+                        //MessageBox.Show("ERROR");
+                        break;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                  }
+              }
+            MessageBox.Show("Correcto");
+        }
+
+
+
+
         public void NuevoNodo(string op, ref Stack<Nodo> simb)
         {
             Nodo Nuevo = new Nodo();
@@ -879,6 +1068,31 @@ namespace Beta
                 }
             }
         }
+        public static void Copiar(string carpetaOrigen, string carpetaDestino)
+        {
+            var origen = new DirectoryInfo(carpetaOrigen);
+            var destino = new DirectoryInfo(carpetaDestino);
+
+            CopiarTodo(origen, destino);
+        }
+
+        public static void CopiarTodo(DirectoryInfo origen, DirectoryInfo destino)
+        {
+            Directory.CreateDirectory(destino.FullName);
+
+            // Copiar cada elemento
+            foreach (FileInfo archivo in origen.GetFiles())
+            {
+                archivo.CopyTo(Path.Combine(destino.FullName, archivo.Name), true);
+            }
+
+            // Copiar cada carpeta
+            foreach (DirectoryInfo carpetas in origen.GetDirectories())
+            {
+                DirectoryInfo siguiente = destino.CreateSubdirectory(carpetas.Name);
+                CopiarTodo(carpetas, siguiente);
+            }
+        }
         private void richTextBox1_Leave(object sender, EventArgs e)
         {
             //Oculta el signo de intercalación
@@ -1069,6 +1283,64 @@ namespace Beta
                 ReleaseCapture();
                 SendMessage(Handle, WM_NCLBUTTONDOWN, HT_CAPTION, 0);
             }
+        }
+      
+        private void pictureBox2_Click(object sender, EventArgs e)
+        {
+            copiar= Directory.GetCurrentDirectory()+ "\\" + "Programa";
+            FolderBrowserDialog fd = new FolderBrowserDialog();
+            tokenParaExportar = esuntoken;
+
+            tokenParaExportar = tokenParaExportar.Where(x => !string.IsNullOrEmpty(x)).ToArray();
+            string soloTokens = (@"(')(.)(')");
+            string espacioTokens = (@"(TOKEN)( | )*(\d+)( | |)+(=)");
+
+            for (int i = 0; i < tokenParaExportar.Length; i++)
+            {
+                tokenParaExportar[i] = tokenParaExportar[i].Replace("'('", "'〈'");
+                tokenParaExportar[i] = tokenParaExportar[i].Replace("')'", "'〉'");
+                tokenParaExportar[i] = tokenParaExportar[i].Replace("'*'", "'×'");
+                tokenParaExportar[i] = tokenParaExportar[i].Replace("'+'", "(┼)");
+                tokenParaExportar[i] = Regex.Replace(tokenParaExportar[i], soloTokens, "$2");
+                tokenParaExportar[i] = Regex.Replace(tokenParaExportar[i], espacioTokens, "$1 "+"$3 " + "$5 ");
+            }
+
+            
+            File.WriteAllLines(@"SonTokens.txt", tokenParaExportar);
+
+            
+            for (int i = 0; i < esUnaReservada.Length; i++)
+            {
+                if (esUnaReservada[i] != null)
+                {
+                    esUnaReservada[i] = esUnaReservada[i].Replace('{', ' ');
+                    esUnaReservada[i] = esUnaReservada[i].Replace('}', ' ');
+                    esUnaReservada[i] = Regex.Replace(esUnaReservada[i], @"\t", "");
+                    esUnaReservada[i] = Regex.Replace(esUnaReservada[i], @" ", "");
+                }
+            }
+            esUnaReservada = esUnaReservada.Where(x => !string.IsNullOrEmpty(x)).ToArray();
+            File.WriteAllLines(@"SonReservadas.txt", esUnaReservada);
+
+            fd.ShowDialog();
+            guardar = fd.SelectedPath + "\\" + "Programa";
+            bool existe = System.IO.Directory.Exists(copiar);
+            string copiarTXT = copiar + "\\"+"bin"+ "\\"+"Debug"+ "\\" + "Datagrid.txt";
+            string copiarTXT2 = copiar + "\\" + "bin" + "\\" + "Debug" + "\\" + "SonTokens.txt";
+            string copiarTXT3 = copiar + "\\" + "bin" + "\\" + "Debug" + "\\" + "SonReservadas.txt";
+
+            if (existe)
+            {
+                File.Copy(@"Datagrid.txt", copiarTXT,true);
+                File.Copy(@"SonTokens.txt", copiarTXT2, true);
+                File.Copy(@"SonReservadas.txt", copiarTXT3, true);
+                Copiar(copiar,guardar);
+            }
+
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
         }
 
         private void Form1_DragEnter_1(object sender, DragEventArgs e)
